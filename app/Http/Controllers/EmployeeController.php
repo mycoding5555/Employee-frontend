@@ -3,14 +3,16 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Http;
 
 class EmployeeController extends Controller
 {
     private string $apiBase = 'http://127.0.0.1:8000/api';
+    private int $perPage = 9;
 
     // Main search page
-    public function index()
+    public function index(Request $request)
     {
         try {
             $departments = Http::timeout(5)->get($this->apiBase . '/departments')->json() ?? [];
@@ -18,10 +20,12 @@ class EmployeeController extends Controller
         } catch (\Exception $e) {
             $departments = [];
             $employees = [];
-            return view('employees.index', compact('departments', 'employees'))->with('filters', [])
+            return view('employees.index', ['departments' => $departments, 'employees' => new LengthAwarePaginator([], 0, $this->perPage)])
+                ->with('filters', [])
                 ->with('error', 'Backend API is not reachable. Make sure it is running on port 8001.');
         }
         $filters = [];
+        $employees = $this->paginateArray($employees, $request);
         return view('employees.index', compact('departments', 'employees', 'filters'));
     }
 
@@ -40,6 +44,7 @@ class EmployeeController extends Controller
 
         $employees = Http::get($this->apiBase . '/employees', $query)->json();
         $filters = $request->only(['name', 'department_id']);
+        $employees = $this->paginateArray($employees, $request);
 
         return view('employees.index', compact('departments', 'employees', 'filters'));
     }
@@ -108,5 +113,21 @@ class EmployeeController extends Controller
             mkdir($path, 0755, true);
         }
         return $path;
+    }
+
+    // Paginate an array of results
+    private function paginateArray(array $items, Request $request): LengthAwarePaginator
+    {
+        $page = $request->input('page', 1);
+        $offset = ($page - 1) * $this->perPage;
+        $sliced = array_slice($items, $offset, $this->perPage);
+
+        return new LengthAwarePaginator(
+            $sliced,
+            count($items),
+            $this->perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
     }
 }

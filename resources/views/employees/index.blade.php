@@ -1,43 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Employee Directory</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="{{ asset('css/employees.css') }}" rel="stylesheet">
-</head>
-<body>
-    {{-- Navbar --}}
-    <nav class="app-navbar">
-        <div class="container">
-            <div class="brand" onclick="window.location='{{ route('employees.index') }}'">
-                <span class="brand-icon"><i class="bi bi-people-fill"></i></span>
-                មុខងារទាញយករូបថត
-            </div>
-        </div>
-    </nav>
+@extends('layout.main')
 
-    <div class="container">
-        {{-- Flash Messages --}}
-        @if(session('success'))
-            <div class="app-alert app-alert-success mt-3 alert alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle-fill"></i> {{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" style="filter: invert(52%) sepia(52%) saturate(5000%) hue-rotate(130deg);"></button>
-            </div>
-        @endif
-        @if(session('error'))
-            <div class="app-alert app-alert-danger mt-3 alert alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-triangle-fill"></i> {{ session('error') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" style="filter: invert(26%) sepia(89%) saturate(5000%) hue-rotate(355deg);"></button>
-            </div>
-        @endif
+@section('title', 'បោះពុម្ភរូបថត')
+@section('page-title', 'បោះពុម្ភរូបថត')
+@section('page-subtitle', 'ស្វែងរក និងទាញយករូបថតបុគ្គលិក')
 
+@section('content')
         {{-- Search Section --}}
         <div class="search-section">
-            <div class="section-title"><i class="bi bi-funnel me-1"></i> Search &amp; Filter</div>
             <div class="app-card">
                 <div class="card-body-custom">
                     <form id="search-form" action="{{ route('employees.search') }}" method="GET">
@@ -87,7 +56,7 @@
                 <div class="app-card">
                     <div class="card-header-custom">
                         <span class="result-count">
-                            <i class="bi bi-people"></i> {{ count($employees) }} employee{{ count($employees) !== 1 ? 's' : '' }} found
+                            <i class="bi bi-people"></i> {{ $employees->total() }} បុគ្គលិក{{ $employees->total() !== 1 ? '' : '' }}រកឃើញ
                         </span>
 
                         @if(isset($filters['department_id']) && $filters['department_id'])
@@ -98,23 +67,23 @@
                         @endif
                     </div>
 
-                    @if(count($employees) > 0)
+                    @if($employees->total() > 0)
                         <div class="table-responsive">
                             <table class="table-custom table">
                                 <thead>
                                     <tr>
-                                        <th style="width:60px">#</th>
+                                        <th style="width:60px">អត្តលេខ</th>
                                         <th>គោត្តនាម និងនាម</th>
                                         <th>ភេទ</th>
                                         <th>អគ្គនាយកដ្ឋាន</th>
-                                        <th style="width:160px">រូបថត</th>
+                                        <th style="width:160px">ទាញយករូបថត</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @php $avatarColors = ['#4f46e5','#7c3aed','#2563eb','#0891b2','#059669','#d97706','#dc2626','#db2777']; @endphp
                                     @foreach($employees as $i => $emp)
                                         <tr>
-                                            <td class="text-muted fw-medium">{{ $i + 1 }}</td>
+                                            <td class="text-muted fw-medium">{{ $employees->firstItem() + $i }}</td>
                                             <td>
                                                 <div class="emp-name-group">
                                                     <span class="emp-avatar" style="background:{{ $avatarColors[$i % count($avatarColors)] }}">
@@ -149,11 +118,22 @@
                                 </tbody>
                             </table>
                         </div>
+
+                        {{-- Pagination --}}
+                        @if($employees->hasPages())
+                        <div class="pagination-wrapper">
+                            <div class="pagination-info">
+                                បង្ហាញ {{ $employees->firstItem() }}-{{ $employees->lastItem() }} នៃ {{ $employees->total() }}
+                            </div>
+                            <div class="pagination-controls">
+                                {{ $employees->links() }}
+                            </div>
+                        </div>
+                        @endif
                     @else
                         <div class="empty-state">
                             <div class="empty-state-icon"><i class="bi bi-person-slash"></i></div>
-                            <h5>No employees found</h5>
-                            <p>Try adjusting your search or filter criteria.</p>
+                            <h5>រកមិនឃើញបុគ្គលិក</h5>
                         </div>
                     @endif
                 </div>
@@ -171,16 +151,9 @@
             </div>
         @endif
         </div>
-    </div>
-    
-    {{-- Footer --}}
-    <footer class="app-footer">
-        <div class="container">
-            &copy; {{ date('Y') }} នាយកដ្ឋានបុគ្គលិក នៃអគ្គលេខាធិការដ្ឋាន &middot; សិទ្ធិគ្រប់យ៉ាងបានរក្សា។ &middot; <a href="
-        </div>
-    </footer>
+    @endsection
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    @push('scripts')
     <script>
     (function() {
         const nameInput = document.getElementById('name');
@@ -188,37 +161,45 @@
         const resultsContainer = document.getElementById('results-container');
         const searchForm = document.getElementById('search-form');
         const avatarColors = ['#4f46e5','#7c3aed','#2563eb','#0891b2','#059669','#d97706','#dc2626','#db2777'];
+        const perPage = 9;
         let debounceTimer;
+        let allEmployees = [];
+        let currentPage = 1;
+        let currentDeptId = '';
 
         searchForm.addEventListener('submit', function(e) {
             e.preventDefault();
+            currentPage = 1;
             fetchEmployees();
         });
 
         nameInput.addEventListener('input', function() {
             clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(fetchEmployees, 300);
+            debounceTimer = setTimeout(function() { currentPage = 1; fetchEmployees(); }, 300);
         });
 
-        deptSelect.addEventListener('change', fetchEmployees);
+        deptSelect.addEventListener('change', function() { currentPage = 1; fetchEmployees(); });
 
         function fetchEmployees() {
             const params = new URLSearchParams();
             const name = nameInput.value.trim();
-            const deptId = deptSelect.value;
+            currentDeptId = deptSelect.value;
 
             if (name) params.append('name', name);
-            if (deptId) params.append('department_id', deptId);
+            if (currentDeptId) params.append('department_id', currentDeptId);
 
             fetch('{{ route("employees.ajax-search") }}?' + params.toString())
                 .then(r => r.json())
-                .then(employees => renderResults(employees, deptId))
+                .then(function(employees) {
+                    allEmployees = employees || [];
+                    renderPage();
+                })
                 .catch(() => {
                     resultsContainer.innerHTML = `
                         <div class="mt-4 mb-4"><div class="app-card"><div class="empty-state">
                             <div class="empty-state-icon"><i class="bi bi-exclamation-triangle"></i></div>
-                            <h5>Error fetching employees</h5>
-                            <p>Please check your connection and try again.</p>
+                            <h5>កំហុសក្នុងការទាញយកទិន្នន័យ</h5>
+                            <p>សូមពិនិត្យការតភ្ជាប់ហើយព្យាយាមម្តងទៀត។</p>
                         </div></div></div>`;
                 });
         }
@@ -229,42 +210,49 @@
             return div.innerHTML;
         }
 
-        function renderResults(employees, deptId) {
-            if (!employees || employees.length === 0) {
+        function renderPage() {
+            const total = allEmployees.length;
+            const totalPages = Math.ceil(total / perPage);
+            if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+            const start = (currentPage - 1) * perPage;
+            const pageItems = allEmployees.slice(start, start + perPage);
+
+            if (total === 0) {
                 resultsContainer.innerHTML = `
                     <div class="mt-4 mb-4"><div class="app-card">
                         <div class="card-header-custom">
-                            <span class="result-count"><i class="bi bi-people"></i> 0 employees found</span>
+                            <span class="result-count"><i class="bi bi-people"></i> 0 បុគ្គលិករកឃើញ</span>
                         </div>
                         <div class="empty-state">
                             <div class="empty-state-icon"><i class="bi bi-person-slash"></i></div>
-                            <h5>No employees found</h5>
-                            <p>Try adjusting your search or filter criteria.</p>
+                            <h5>រកមិនឃើញបុគ្គលិក</h5>
+                            <p>សូមកែប្រែលក្ខខណ្ឌស្វែងរក។</p>
                         </div>
                     </div></div>`;
                 return;
             }
 
             let downloadBtn = '';
-            if (deptId) {
-                downloadBtn = `<a href="/download-department/${encodeURIComponent(deptId)}" class="btn btn-success-custom">
+            if (currentDeptId) {
+                downloadBtn = `<a href="/employees/download-department/${encodeURIComponent(currentDeptId)}" class="btn btn-success-custom">
                     <i class="bi bi-file-earmark-zip me-1"></i> ទាញយកតាមអគ្គនាយកដ្ឋាន</a>`;
             }
 
             let rows = '';
-            employees.forEach(function(emp, i) {
-                const color = avatarColors[i % avatarColors.length];
+            pageItems.forEach(function(emp, i) {
+                const globalIndex = start + i + 1;
+                const color = avatarColors[(start + i) % avatarColors.length];
                 const initial = emp.name ? escapeHtml(emp.name.charAt(0).toUpperCase()) : '?';
                 const name = escapeHtml(emp.name || '');
                 const sex = escapeHtml(emp.sex || '');
                 const isMale = emp.sex === 'Male';
                 const deptName = emp.department ? escapeHtml(emp.department.name) : 'N/A';
                 const photoCell = emp.photo
-                    ? `<a href="/download-photo/${encodeURIComponent(emp.id)}" class="photo-link"><i class="bi bi-download"></i> ទាញយក</a>`
+                    ? `<a href="/employees/download-photo/${encodeURIComponent(emp.id)}" class="photo-link"><i class="bi bi-download"></i> ទាញយក</a>`
                     : `<span class="no-photo"><i class="bi bi-image"></i> គ្មានរូបថត</span>`;
 
                 rows += `<tr>
-                    <td class="text-muted fw-medium">${i + 1}</td>
+                    <td class="text-muted fw-medium">${globalIndex}</td>
                     <td><div class="emp-name-group">
                         <span class="emp-avatar" style="background:${color}">${initial}</span>
                         <span class="emp-name">${name}</span>
@@ -277,27 +265,71 @@
                 </tr>`;
             });
 
+            let paginationHtml = '';
+            if (totalPages > 1) {
+                const firstItem = start + 1;
+                const lastItem = Math.min(start + perPage, total);
+                paginationHtml = `<div class="pagination-wrapper">
+                    <div class="pagination-info">បង្ហាញ ${firstItem}-${lastItem} នៃ ${total}</div>
+                    <div class="pagination-controls"><nav><ul class="pagination">`;
+
+                paginationHtml += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" data-page="${currentPage - 1}">&laquo;</a></li>`;
+
+                let startP = Math.max(1, currentPage - 2);
+                let endP = Math.min(totalPages, currentPage + 2);
+                if (startP > 1) {
+                    paginationHtml += `<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`;
+                    if (startP > 2) paginationHtml += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                }
+                for (let p = startP; p <= endP; p++) {
+                    paginationHtml += `<li class="page-item ${p === currentPage ? 'active' : ''}">
+                        <a class="page-link" href="#" data-page="${p}">${p}</a></li>`;
+                }
+                if (endP < totalPages) {
+                    if (endP < totalPages - 1) paginationHtml += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                    paginationHtml += `<li class="page-item"><a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a></li>`;
+                }
+
+                paginationHtml += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                    <a class="page-link" href="#" data-page="${currentPage + 1}">&raquo;</a></li>`;
+                paginationHtml += `</ul></nav></div></div>`;
+            }
+
             resultsContainer.innerHTML = `
                 <div class="mt-4 mb-4"><div class="app-card">
                     <div class="card-header-custom">
-                        <span class="result-count"><i class="bi bi-people"></i> ${employees.length} employee${employees.length !== 1 ? 's' : ''} found</span>
+                        <span class="result-count"><i class="bi bi-people"></i> ${total} បុគ្គលិករកឃើញ</span>
                         ${downloadBtn}
                     </div>
                     <div class="table-responsive">
                         <table class="table-custom table">
                             <thead><tr>
-                                <th style="width:60px">#</th>
+                                <th style="width:60px">អត្តលេខ</th>
                                 <th>គោត្តនាម និងនាម</th>
                                 <th>ភេទ</th>
                                 <th>អគ្គនាយកដ្ឋាន</th>
-                                <th style="width:160px">រូបថត</th>
+                                <th style="width:160px">ទាញយករូបថត</th>
                             </tr></thead>
                             <tbody>${rows}</tbody>
                         </table>
                     </div>
+                    ${paginationHtml}
                 </div></div>`;
+
+            // Attach pagination click handlers
+            resultsContainer.querySelectorAll('.page-link[data-page]').forEach(function(link) {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const page = parseInt(this.getAttribute('data-page'));
+                    if (page >= 1 && page <= totalPages) {
+                        currentPage = page;
+                        renderPage();
+                        resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+            });
         }
     })();
     </script>
-</body>
-</html>
+    @endpush
