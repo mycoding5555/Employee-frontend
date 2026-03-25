@@ -73,6 +73,7 @@
                                 <thead>
                                     <tr>
                                         <th style="width:60px">អត្តលេខ</th>
+                                        <th>រូបថត</th>
                                         <th>គោត្តនាម និងនាម</th>
                                         <th>ភេទ</th>
                                         <th>មុខតំណែង</th>
@@ -86,31 +87,20 @@
                                         <tr>
                                             <td class="text-muted fw-medium">{{ $employees->firstItem() + $i }}</td>
                                             <td>
-                                                <div class="emp-name-group">
+                                                @if($emp['photo'])
+                                                    <img src="{{ route('employees.show-photo', $emp['id']) }}" alt="{{ $emp['name'] }}" class="emp-photo-thumb">
+                                                @else
                                                     <span class="emp-avatar" style="background:{{ $avatarColors[$i % count($avatarColors)] }}">
                                                         {{ strtoupper(substr($emp['name'], 0, 1)) }}
                                                     </span>
-                                                    <span class="emp-name">{{ $emp['name'] }}</span>
-                                                </div>
+                                                @endif
                                             </td>
                                             <td>
-                                                <span class="badge-gender {{ $emp['sex'] === 'Male' ? 'badge-male' : 'badge-female' }}">
-                                                    <i class="bi {{ $emp['sex'] === 'Male' ? 'bi-gender-male' : 'bi-gender-female' }}"></i>
-                                                    {{ $emp['sex'] }}
-                                                </span>
+                                                <span class="emp-name">{{ $emp['name'] }}</span>
                                             </td>
-                                            <td>
-                                                <span class="badge-role">
-                                                    <i class="bi bi-person-badge"></i>
-                                                    {{ $emp['title']['name'] ?? 'N/A' }}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <span class="badge-dept">
-                                                    <i class="bi bi-building"></i>
-                                                    {{ $emp['department']['name'] ?? 'N/A' }}
-                                                </span>
-                                            </td>
+                                            <td>{{ $emp['sex'] }}</td>
+                                            <td>{{ $emp['title']['name'] ?? 'N/A' }}</td>
+                                            <td>{{ $emp['department']['name'] ?? 'N/A' }}</td>
                                             <td>
                                                 @if($emp['photo'])
                                                     <a href="{{ route('employees.download-photo', $emp['id']) }}" class="photo-link">
@@ -129,9 +119,6 @@
                         {{-- Pagination --}}
                         @if($employees->hasPages())
                         <div class="pagination-wrapper">
-                            <div class="pagination-info">
-                                បង្ហាញ {{ $employees->firstItem() }}-{{ $employees->lastItem() }} នៃ {{ $employees->total() }}
-                            </div>
                             <div class="pagination-controls">
                                 {{ $employees->links() }}
                             </div>
@@ -252,34 +239,30 @@
                 const initial = emp.name ? escapeHtml(emp.name.charAt(0).toUpperCase()) : '?';
                 const name = escapeHtml(emp.name || '');
                 const sex = escapeHtml(emp.sex || '');
-                const isMale = emp.sex === 'Male';
                 const title = emp.title ? escapeHtml(emp.title.name || 'N/A') : 'N/A';
                 const deptName = emp.department ? escapeHtml(emp.department.name) : 'N/A';
                 const photoCell = emp.photo
                     ? `<a href="/employees/download-photo/${encodeURIComponent(emp.id)}" class="photo-link"><i class="bi bi-download"></i> ទាញយក</a>`
                     : `<span class="no-photo"><i class="bi bi-image"></i> គ្មានរូបថត</span>`;
 
+                const avatarHtml = emp.photo
+                    ? `<img src="/employees/photo/${encodeURIComponent(emp.id)}" alt="${name}" class="emp-photo-thumb">`
+                    : `<span class="emp-avatar" style="background:${color}">${initial}</span>`;
+
                 rows += `<tr>
                     <td class="text-muted fw-medium">${globalIndex}</td>
-                    <td><div class="emp-name-group">
-                        <span class="emp-avatar" style="background:${color}">${initial}</span>
-                        <span class="emp-name">${name}</span>
-                    </div></td>
-                    <td><span class="badge-gender ${isMale ? 'badge-male' : 'badge-female'}">
-                        <i class="bi ${isMale ? 'bi-gender-male' : 'bi-gender-female'}"></i> ${sex}
-                    </span></td>
-                    <td><span class="badge-role"><i class="bi bi-person-badge"></i> ${title}</span></td>
-                    <td><span class="badge-dept"><i class="bi bi-building"></i> ${deptName}</span></td>
+                    <td>${avatarHtml}</td>
+                    <td><span class="emp-name">${name}</span></td>
+                    <td>${sex}</td>
+                    <td>${title}</td>
+                    <td>${deptName}</td>
                     <td>${photoCell}</td>
                 </tr>`;
             });
 
             let paginationHtml = '';
             if (totalPages > 1) {
-                const firstItem = start + 1;
-                const lastItem = Math.min(start + perPage, total);
                 paginationHtml = `<div class="pagination-wrapper">
-                    <div class="pagination-info">បង្ហាញ ${firstItem}-${lastItem} នៃ ${total}</div>
                     <div class="pagination-controls"><nav><ul class="pagination">`;
 
                 paginationHtml += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
@@ -315,6 +298,7 @@
                         <table class="table-custom table">
                             <thead><tr>
                                 <th style="width:60px">អត្តលេខ</th>
+                                <th>រូបថត</th>
                                 <th>គោត្តនាម និងនាម</th>
                                 <th>ភេទ</th>
                                 <th>មុខតំណែង</th>
@@ -339,6 +323,7 @@
                     }
                 });
             });
+
         }
     })();
     </script>
