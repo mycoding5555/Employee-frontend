@@ -75,6 +75,7 @@
                                         <th style="width:60px">អត្តលេខ</th>
                                         <th>គោត្តនាម និងនាម</th>
                                         <th>ភេទ</th>
+                                        <th>មុខតំណែង</th>
                                         <th>អគ្គនាយកដ្ឋាន</th>
                                         <th style="width:160px">ទាញយករូបថត</th>
                                     </tr>
@@ -96,6 +97,12 @@
                                                 <span class="badge-gender {{ $emp['sex'] === 'Male' ? 'badge-male' : 'badge-female' }}">
                                                     <i class="bi {{ $emp['sex'] === 'Male' ? 'bi-gender-male' : 'bi-gender-female' }}"></i>
                                                     {{ $emp['sex'] }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge-role">
+                                                    <i class="bi bi-person-badge"></i>
+                                                    {{ $emp['title']['name'] ?? 'N/A' }}
                                                 </span>
                                             </td>
                                             <td>
@@ -246,6 +253,7 @@
                 const name = escapeHtml(emp.name || '');
                 const sex = escapeHtml(emp.sex || '');
                 const isMale = emp.sex === 'Male';
+                const title = emp.title ? escapeHtml(emp.title.name || 'N/A') : 'N/A';
                 const deptName = emp.department ? escapeHtml(emp.department.name) : 'N/A';
                 const photoCell = emp.photo
                     ? `<a href="/employees/download-photo/${encodeURIComponent(emp.id)}" class="photo-link"><i class="bi bi-download"></i> ទាញយក</a>`
@@ -260,6 +268,7 @@
                     <td><span class="badge-gender ${isMale ? 'badge-male' : 'badge-female'}">
                         <i class="bi ${isMale ? 'bi-gender-male' : 'bi-gender-female'}"></i> ${sex}
                     </span></td>
+                    <td><span class="badge-role"><i class="bi bi-person-badge"></i> ${title}</span></td>
                     <td><span class="badge-dept"><i class="bi bi-building"></i> ${deptName}</span></td>
                     <td>${photoCell}</td>
                 </tr>`;
@@ -308,6 +317,7 @@
                                 <th style="width:60px">អត្តលេខ</th>
                                 <th>គោត្តនាម និងនាម</th>
                                 <th>ភេទ</th>
+                                <th>មុខតំណែង</th>
                                 <th>អគ្គនាយកដ្ឋាន</th>
                                 <th style="width:160px">ទាញយករូបថត</th>
                             </tr></thead>

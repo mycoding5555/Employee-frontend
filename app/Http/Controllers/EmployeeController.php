@@ -29,7 +29,7 @@ class EmployeeController extends Controller
         return view('employees.index', compact('departments', 'employees', 'filters'));
     }
 
-    // Search employees
+    // Search employees by department 
     public function search(Request $request)
     {
         $departments = Http::get($this->apiBase . '/departments')->json();
@@ -65,6 +65,15 @@ class EmployeeController extends Controller
         } catch (\Exception $e) {
             $employees = [];
         }
+
+        usort($employees, function ($a, $b) {
+            $titleA = $a['title']['id'] ?? PHP_INT_MAX;
+            $titleB = $b['title']['id'] ?? PHP_INT_MAX;
+            if ($titleA !== $titleB) {
+                return $titleA <=> $titleB;
+            }
+            return ($a['id'] ?? 0) <=> ($b['id'] ?? 0);
+        });
 
         return response()->json($employees);
     }
@@ -118,6 +127,15 @@ class EmployeeController extends Controller
     // Paginate an array of results
     private function paginateArray(array $items, Request $request): LengthAwarePaginator
     {
+        usort($items, function ($a, $b) {
+            $titleA = $a['title']['id'] ?? PHP_INT_MAX;
+            $titleB = $b['title']['id'] ?? PHP_INT_MAX;
+            if ($titleA !== $titleB) {
+                return $titleA <=> $titleB;
+            }
+            return ($a['id'] ?? 0) <=> ($b['id'] ?? 0);
+        });
+
         $page = $request->input('page', 1);
         $offset = ($page - 1) * $this->perPage;
         $sliced = array_slice($items, $offset, $this->perPage);
